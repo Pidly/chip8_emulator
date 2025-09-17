@@ -1,0 +1,56 @@
+// 34 potential operations.
+// https://johnearnest.github.io/Octo/docs/chip8ref.pdf
+#include "OperationParser.h"
+//    char16_t allTopFourBits = 0xF000;
+
+OperationParser::OperationParser() {
+    allTopFourBits = 0xF000;
+}
+
+OperationParser::OpCode OperationParser::parse(char16_t opp) {
+    char opCodeCategory = (opp & allTopFourBits) >> 12;
+    switch (opCodeCategory) {
+        case(0x00):
+            //OOE0 clear
+            //00EE return
+            return ClearScreen;
+            break;
+        case(0x01):
+            //1NNN jump NNN
+            return Jump;
+            break;
+        case(0x02):
+            //2NNN Call a subroutine
+            return Skip;
+            break;
+        case(0x03):
+            //3XNN if vx != NN then
+            return Skip;
+        case(0x06):
+            //6XNN vx := NN
+            return LoadNormalRegister;
+            break;
+        case(0x07):
+            //7XNN vx += NN
+            return Skip;
+            break;
+        case(0x0A):
+            //ANNN i := NNN
+            return LoadIndexRegister;
+            break;
+        case(0x0B):
+            return Skip;
+            //BNNN jump0 NNN | jump to address NNN + v0
+        case(0x0D):
+            //DXYN sprite vx vy N | vf == 1 on collision
+            return DrawSprite;
+            break;
+        case(0x0F):
+            return Skip;
+            break;
+        default:
+            return Skip;
+            break;
+    }
+}
+

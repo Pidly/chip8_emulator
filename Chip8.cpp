@@ -1,14 +1,139 @@
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+#include "OperationParser.h"
+#include "Chip8.h"
 
+using namespace std;
+
+/*
 class Chip8 {
-    char registers[16];
-    char memory[4096];
-    char16_t indexRegister;
+    char registers[16] = {0};
+    char memory[4096] = {0};
+    char frameBuffer[64*32] = {0};
+    char16_t indexRegister = 0;
+    char16_t programCounter = 0x200;
+    char16_t stack[16] = {0};
     void initFontData();
+    ifstream &in;
+    void readStream();
+    OperationParser parser;
 public:
-    Chip8() {
+    Chip8(ifstream &in) : in(in) {
         initFontData();
-    };
+        readStream();
+        parser = OperationParser();
+    }
+    void readRomInstructions();
 };
+*/
+Chip8::Chip8(ifstream &in): in(in) {
+    initFontData();
+    readStream();
+    programCounter = 0x200;
+}
+
+
+void Chip8::readStream() {
+    char ch;
+    int charNumbers = 0;
+    char testch = 0xE0;
+    // 512
+    while (in) {
+        in.get(ch);
+        if (in) {
+            memory[512 + charNumbers] = ch;
+            charNumbers++;
+            cout << "char: " << ch;
+            cout << " Hex: 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(ch) << endl;
+        } else {
+            cout << "Rom size in bytes: " << charNumbers+1 << "\n";
+        }
+    }
+}
+
+void Chip8::readRomInstructions() {
+    int numOfInstructions = 10;
+    int instructionExecuted = 0;
+    do {
+        unsigned char topInstruction = memory[programCounter];
+        unsigned char bottomInstruction = memory[programCounter + 1];
+        programCounter = programCounter + 2;
+        instructionExecuted++;
+        char16_t instruction = (static_cast<char16_t>(topInstruction) << 8 | bottomInstruction);
+
+        switch (parser.parse(instruction)) {
+            case(OperationParser::ClearScreen):
+                screen.clearScreen();
+                break;
+            case(OperationParser::LoadNormalRegister): {
+                //0x0F = 0000 1111
+                const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
+                const auto value = static_cast<unsigned char>(instruction);
+                registers[registerNumber] = value;
+                break;
+            }
+            case(OperationParser::LoadIndexRegister):
+                //0x0FFF 0000 1111 1111 1111
+                indexRegister = (instruction & 0x0FFF);
+                break;
+            case(OperationParser::DrawSprite): {
+                int xRegisterIndex = ((instruction >> 8) & 0x0F);
+                int yRegisterIndex = ((instruction >> 4) & 0x0F);
+                int numOfBytes = ((instruction) & 0x0F);
+
+                int xPos = registers[xRegisterIndex];
+                int yPos = registers[yRegisterIndex];
+
+                screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+                //Dxyn - Draw sprite to screen (only aligned)
+                // https://austinmorlan.com/posts/chip8_emulator/#64x32-monochrome-display-memory
+                /*
+                 * Display N-byte sprite starting at memory location I at (VX, VY).
+                 * Each set bit of xored with what's already drawn. VF is set to 1
+                 * if a collision occurs. 0 otherwise.
+                 */
+                break;
+            }
+            case(OperationParser::Jump): {
+                screen.printScreen();
+                programCounter = (instruction & 0x0FFF);
+                break;
+            }
+            default:
+                break;
+        }
+    } while (programCounter < sizeof(memory));
+}
+
+
+/*
+ *Instructions to implement:
+ * Ref: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
+ *      https://johnearnest.github.io/Octo/docs/chip8ref.pdf
+ *      https://github.com/trapexit/chip-8_documentation
+ *  64x32 display = 2048 pixels
+ * 00e0 -  Clear the display
+ * Annn - LD I, addr
+ *      The value of register I is set to nnn.
+ * Dxyn - DRW Vx, Vy, nibble
+ *     Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+The interpreter reads n bytes from memory, starting at the address stored in I.
+These bytes are then displayed as sprites on screen at coordinates (Vx, Vy).
+Sprites are XORed onto the existing screen. If this causes any pixels to be erased,
+VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it
+is outside the coordinates of the display, it wraps around to the opposite side of the screen.
+See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information
+on the Chip-8 screen and sprites.
+ * 1NNN jump NNN
+ *      Jump to a machine code routine at nnn.
+ *
+    00E0 - Clear the screen
+    6xnn - Load normal register with immediate value
+    Annn - Load index register with immediate value
+    Dxyn - Draw sprite to screen (only aligned)
+    1nnn - Jump
+ */
 
 void Chip8::initFontData() {
     // 0
