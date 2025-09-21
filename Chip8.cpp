@@ -6,27 +6,6 @@
 
 using namespace std;
 
-/*
-class Chip8 {
-    char registers[16] = {0};
-    char memory[4096] = {0};
-    char frameBuffer[64*32] = {0};
-    char16_t indexRegister = 0;
-    char16_t programCounter = 0x200;
-    char16_t stack[16] = {0};
-    void initFontData();
-    ifstream &in;
-    void readStream();
-    OperationParser parser;
-public:
-    Chip8(ifstream &in) : in(in) {
-        initFontData();
-        readStream();
-        parser = OperationParser();
-    }
-    void readRomInstructions();
-};
-*/
 Chip8::Chip8(ifstream &in): in(in) {
     initFontData();
     readStream();
@@ -52,6 +31,47 @@ void Chip8::readStream() {
     }
 }
 
+void Chip8::runInstruction(char16_t instruction) {
+
+    switch (parser.parse(instruction)) {
+        case(OperationParser::ClearScreen): {
+            screen.clearScreen();
+            break;
+        }
+        case(OperationParser::LoadNormalRegister): {
+            const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
+            const auto value = static_cast<unsigned char>(instruction);
+            registers[registerNumber] = value;
+            break;
+        }
+        case(OperationParser::LoadIndexRegister): {
+            indexRegister = (instruction & 0x0FFF);
+            break;
+        }
+        case(OperationParser::DrawSprite): {
+            int xRegisterIndex = ((instruction >> 8) & 0x0F);
+            int yRegisterIndex = ((instruction >> 4) & 0x0F);
+            int numOfBytes = ((instruction) & 0x0F);
+
+            int xPos = registers[xRegisterIndex];
+            int yPos = registers[yRegisterIndex];
+
+            screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+            break;
+        }
+        case(OperationParser::Jump): {
+            programCounter = (instruction & 0x0FFF);
+            break;
+        }
+    }
+}
+
+void Chip8::drawScreen() {
+    screen.printScreen();
+}
+
+
+
 void Chip8::readRomInstructions() {
     int numOfInstructions = 10;
     int instructionExecuted = 0;
@@ -68,15 +88,22 @@ void Chip8::readRomInstructions() {
                 break;
             case(OperationParser::LoadNormalRegister): {
                 //0x0F = 0000 1111
+                //6xkk - LD Vx, byte
+                //Set Vx = kk
                 const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
                 const auto value = static_cast<unsigned char>(instruction);
                 registers[registerNumber] = value;
                 break;
             }
-            case(OperationParser::LoadIndexRegister):
+            case(OperationParser::LoadIndexRegister): {
                 //0x0FFF 0000 1111 1111 1111
+                /*
+                    Annn - LD I, addr
+                    Set I = nnn.
+                 */
                 indexRegister = (instruction & 0x0FFF);
                 break;
+            }
             case(OperationParser::DrawSprite): {
                 int xRegisterIndex = ((instruction >> 8) & 0x0F);
                 int yRegisterIndex = ((instruction >> 4) & 0x0F);

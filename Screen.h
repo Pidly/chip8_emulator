@@ -12,13 +12,15 @@ class Screen {
     SDL_Window *sdlWindow;
     SDL_Renderer *renderer;
 
-    unsigned char frameBuffer[8*32]; //256
+    unsigned char frameBuffer[64*32]; //256
 public:
     Screen();
     ~Screen();
     void drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, const unsigned char (&memory)[4096]);
     void clearScreen();
     void printScreen();
+    void setSDLBackgroundColor();
+    void setSDLSpriteColor();
 };
 
 

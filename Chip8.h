@@ -12,7 +12,7 @@ class Chip8 {
     //V0 to VF
     unsigned char registers[16];
     unsigned char memory[4096];
-    char frameBuffer[64*32];
+    unsigned char frameBuffer[64*32];
     char16_t indexRegister;
     char16_t programCounter;
     char16_t stack[16];
@@ -24,6 +24,8 @@ class Chip8 {
 public:
     Chip8(std::ifstream &in);
     void readRomInstructions();
+    void drawScreen();
+    void runInstruction(char16_t instruction);
 };
 
 #endif //CHIP8_EMULATOR_CHIP8_H

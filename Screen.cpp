@@ -11,8 +11,7 @@ Screen::Screen() {
     sdlWindow = SDL_CreateWindow("chip8 emulator", 0, 0, 640, 320, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    //clearScreen();
+    clearScreen();
 }
 
 Screen::~Screen() {
@@ -25,57 +24,68 @@ void Screen::clearScreen() {
     for (unsigned char & i : frameBuffer) {
         i = 0;
     }
+    printScreen();
 }
 
 void Screen::drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, const unsigned char (&memory)[4096]) {
 
     for (int i = 0; i < numOfBytes; i++) {
         const unsigned char sprite = memory[indexRegister + i];
-        //parse out each bit
-        for (int p = 0; p < 8; p++) {
-            unsigned char pixel = ((sprite >> p) & 0x01);
-            //todo need to get individual pixel not the whole character DUH
-            unsigned char frameBufferValue = frameBuffer[(8*y) + x];
-            SDL_Rect rect = {x, y, 1, 1};
 
-            if (pixel > 0) {
-                if (frameBufferValue > 0) {
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                    //todo this needs to set individual pixel not the char
-                    frameBuffer[(8*y) + x] = 0;
+        for (int j = 0; j < 8; j++) {
+            unsigned char pixelOn = (sprite << j) & 0x80;
+            if (pixelOn > 0) {
+                int pixelX = x + j;
+                int pixelY = (y + i) * 64;
+                if (frameBuffer[pixelX + pixelY] > 0) {
+                    frameBuffer[pixelX + pixelY] = 0;
                 } else {
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-                    //todo this needs to set individual pixel not the char
-                    frameBuffer[(8*y) + x] = 1;
+                    frameBuffer[pixelY + pixelX] = 1;
                 }
-            } else {
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                //todo this needs to set individual pixel not the char
-                frameBuffer[(8*y) + x] = 0;
             }
-            SDL_RenderFillRect(renderer, &rect);
-            SDL_RenderPresent(renderer);
         }
     }
-    SDL_RenderPresent(renderer);
 }
 
 void Screen::printScreen() {
-    for (int y = 0; y < 32; y++) {
-        for (int c = 0; c < 8; c++) {
-            char spring = frameBuffer[(y*8) + c];
-            for (int i = 0; i < 8; i++) {
-                unsigned char pixel = (spring >> i);
-                if (pixel > 0) {
-                    cout << "1";
-                } else {
-                    cout << "0";
-                }
-            }
+    cout << "\n";
+    //index = row * column + c
+
+    //row = i / numberOfColumns (int division)
+    //columns = i % numberOfColumns
+    for (int i = 0; i < sizeof(frameBuffer); i++) {
+        if (i % 64 == 0) {
+            cout << "\n";
         }
-        cout << "\n";
+        int x = i % 64;
+        int y = i / 64;
+
+        if (frameBuffer[i] > 0) {
+            setSDLSpriteColor();
+            unsigned char fbValue = frameBuffer[i];
+            SDL_Rect rect = {x, y, 1, 1};
+            SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderPresent(renderer);
+             cout << "1";
+        } else {
+            setSDLBackgroundColor();
+            SDL_Rect rect = {x, y, 1, 1};
+            SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderPresent(renderer);
+            cout << "0";
+        }
     }
 }
+
+void Screen::setSDLBackgroundColor() {
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+}
+
+void Screen::setSDLSpriteColor() {
+    SDL_SetRenderDrawColor(renderer, 0, 51, 0, 255);
+}
+
+
 
 
 
