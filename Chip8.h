@@ -24,7 +24,6 @@ class Chip8 {
 public:
     Chip8(std::ifstream &in);
     void readRomInstructions();
-    void drawScreen();
     void runInstruction(char16_t instruction);
 };
 

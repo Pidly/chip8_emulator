@@ -45,36 +45,35 @@ void Screen::drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, co
             }
         }
     }
+    printScreen();
 }
 
 void Screen::printScreen() {
     cout << "\n";
-    //index = row * column + c
 
-    //row = i / numberOfColumns (int division)
-    //columns = i % numberOfColumns
     for (int i = 0; i < sizeof(frameBuffer); i++) {
         if (i % 64 == 0) {
             cout << "\n";
         }
-        int x = i % 64;
-        int y = i / 64;
+        int x = (i % 64) * 10;
+        int y = (i / 64) * 10;
+        int width = 10;
+        int height = 10;
 
         if (frameBuffer[i] > 0) {
             setSDLSpriteColor();
             unsigned char fbValue = frameBuffer[i];
-            SDL_Rect rect = {x, y, 1, 1};
+            SDL_Rect rect = {x, y, width, height};
             SDL_RenderFillRect(renderer, &rect);
-            SDL_RenderPresent(renderer);
              cout << "1";
         } else {
             setSDLBackgroundColor();
-            SDL_Rect rect = {x, y, 1, 1};
+            SDL_Rect rect = {x, y, width, height};
             SDL_RenderFillRect(renderer, &rect);
-            SDL_RenderPresent(renderer);
             cout << "0";
         }
     }
+    SDL_RenderPresent(renderer);
 }
 
 void Screen::setSDLBackgroundColor() {
