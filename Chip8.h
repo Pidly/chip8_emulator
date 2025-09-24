@@ -8,8 +8,6 @@
 #include "Screen.h"
 
 class Chip8 {
-    //6XNN 	LD VX, NN 	CHIP-8 	Load immediate value NN into register VX
-    //V0 to VF
     unsigned char registers[16];
     unsigned char memory[4096];
     unsigned char frameBuffer[64*32];
