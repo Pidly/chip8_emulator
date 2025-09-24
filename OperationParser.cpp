@@ -24,8 +24,11 @@ OperationParser::OpCode OperationParser::parse(char16_t opp) {
             return Skip;
             break;
         case(0x03):
-            //3XNN if vx != NN then skip the next operation (program counter + 2)
-            return CompareVxSkip;
+            //3XNN if vx == NN then skip the next operation (program counter + 2)
+            return CompareVxEqualSkip;
+        case(0x04):
+            //4XNN if vx != NN then skip the next operation (program counter + 2)
+            return CompareVxNotEqualSkip;
         case(0x06):
             //6XNN vx := NN
             return LoadNormalRegister;
