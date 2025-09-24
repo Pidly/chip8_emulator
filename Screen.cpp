@@ -77,11 +77,11 @@ void Screen::printScreen() {
 }
 
 void Screen::setSDLBackgroundColor() {
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 51, 0, 255);
 }
 
 void Screen::setSDLSpriteColor() {
-    SDL_SetRenderDrawColor(renderer, 0, 51, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
 }
 
 

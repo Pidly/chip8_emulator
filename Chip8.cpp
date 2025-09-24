@@ -67,6 +67,15 @@ void Chip8::runInstruction(char16_t instruction) {
             registers[xRegister] += addValue;
             break;
         }
+        case(OperationParser::CompareVxSkip): {
+            //3xNN Skip next instruction if Vx == NN
+            unsigned char xRegister = (instruction >> 8) & 0x0F;
+            unsigned char value = instruction & 0x0FF;
+            if (registers[xRegister] == value) {
+                programCounter += 2;
+            }
+            break;
+        }
         default:
             break;
     }
