@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
     chip8.runInstruction(0x6005);
     chip8.runInstruction(0xA091);
     chip8.runInstruction(0xD105);
-    chip8.drawScreen();
 
     cout << "Running instructions\n";
     chip8.runInstruction(0x00E0);

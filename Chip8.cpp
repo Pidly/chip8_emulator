@@ -16,8 +16,6 @@ Chip8::Chip8(ifstream &in): in(in) {
 void Chip8::readStream() {
     char ch;
     int charNumbers = 0;
-    char testch = 0xE0;
-    // 512
     while (in) {
         in.get(ch);
         if (in) {
@@ -63,73 +61,21 @@ void Chip8::runInstruction(char16_t instruction) {
             programCounter = (instruction & 0x0FFF);
             break;
         }
+        default:
+            break;
     }
-}
-
-void Chip8::drawScreen() {
-    screen.printScreen();
 }
 
 
 
 void Chip8::readRomInstructions() {
-    int numOfInstructions = 10;
-    int instructionExecuted = 0;
     do {
         unsigned char topInstruction = memory[programCounter];
         unsigned char bottomInstruction = memory[programCounter + 1];
         programCounter = programCounter + 2;
-        instructionExecuted++;
         char16_t instruction = (static_cast<char16_t>(topInstruction) << 8 | bottomInstruction);
 
-        switch (parser.parse(instruction)) {
-            case(OperationParser::ClearScreen):
-                screen.clearScreen();
-                break;
-            case(OperationParser::LoadNormalRegister): {
-                //0x0F = 0000 1111
-                //6xkk - LD Vx, byte
-                //Set Vx = kk
-                const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
-                const auto value = static_cast<unsigned char>(instruction);
-                registers[registerNumber] = value;
-                break;
-            }
-            case(OperationParser::LoadIndexRegister): {
-                //0x0FFF 0000 1111 1111 1111
-                /*
-                    Annn - LD I, addr
-                    Set I = nnn.
-                 */
-                indexRegister = (instruction & 0x0FFF);
-                break;
-            }
-            case(OperationParser::DrawSprite): {
-                int xRegisterIndex = ((instruction >> 8) & 0x0F);
-                int yRegisterIndex = ((instruction >> 4) & 0x0F);
-                int numOfBytes = ((instruction) & 0x0F);
-
-                int xPos = registers[xRegisterIndex];
-                int yPos = registers[yRegisterIndex];
-
-                screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
-                //Dxyn - Draw sprite to screen (only aligned)
-                // https://austinmorlan.com/posts/chip8_emulator/#64x32-monochrome-display-memory
-                /*
-                 * Display N-byte sprite starting at memory location I at (VX, VY).
-                 * Each set bit of xored with what's already drawn. VF is set to 1
-                 * if a collision occurs. 0 otherwise.
-                 */
-                break;
-            }
-            case(OperationParser::Jump): {
-                screen.printScreen();
-                programCounter = (instruction & 0x0FFF);
-                break;
-            }
-            default:
-                break;
-        }
+        runInstruction(instruction);
     } while (programCounter < sizeof(memory));
 }
 
