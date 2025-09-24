@@ -61,6 +61,12 @@ void Chip8::runInstruction(char16_t instruction) {
             programCounter = (instruction & 0x0FFF);
             break;
         }
+        case(OperationParser::AddToNormalRegister): {
+            unsigned char xRegister = (instruction >> 8) & 0x0F;
+            unsigned char addValue = instruction & 0x0FF;
+            registers[xRegister] += addValue;
+            break;
+        }
         default:
             break;
     }

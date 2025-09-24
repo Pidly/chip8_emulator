@@ -32,7 +32,7 @@ OperationParser::OpCode OperationParser::parse(char16_t opp) {
             break;
         case(0x07):
             //7XNN vx += NN
-            return Skip;
+            return AddToNormalRegister;
             break;
         case(0x0A):
             //ANNN i := NNN
