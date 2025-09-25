@@ -84,6 +84,14 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
+        case(OperationParser::VxVyEqualSkip): {
+            unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
+            unsigned char yRegisterIndex = (instruction >> 4) & 0x0F;
+            if (registers[xRegisterIndex] == registers[yRegisterIndex]) {
+                programCounter += 2;
+            }
+            break;
+        }
         default:
             break;
     }
