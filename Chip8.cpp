@@ -8,6 +8,7 @@ using namespace std;
 
 Chip8::Chip8(ifstream &in): in(in) {
     initFontData();
+    stackPointer = 0;
     readStream();
     programCounter = 0x200;
 }
@@ -98,6 +99,16 @@ void Chip8::runInstruction(char16_t instruction) {
             if (registers[xRegisterIndex] != registers[yRegisterIndex]) {
                 programCounter += 2;
             }
+            break;
+        }
+        case(OperationParser::CallSubroutine): {
+            /*
+            *Call subroutine at nnn.
+            *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+             */
+            stackPointer += 1;
+            stack[stackPointer] = programCounter;
+            programCounter = instruction & 0x0FFF;
             break;
         }
         default:

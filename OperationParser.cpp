@@ -21,7 +21,7 @@ OperationParser::OpCode OperationParser::parse(char16_t opp) {
             break;
         case(0x02):
             //2NNN Call a subroutine
-            return Skip;
+            return CallSubroutine;
             break;
         case(0x03):
             //3XNN if vx == NN then skip the next operation (program counter + 2)

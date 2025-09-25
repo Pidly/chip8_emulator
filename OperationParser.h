@@ -16,7 +16,8 @@ public:
         CompareVxEqualSkip=7,
         CompareVxNotEqualSkip=8,
         VxVyEqualSkip=9,
-        VxVyNotEqualSkip=10
+        VxVyNotEqualSkip=10,
+        CallSubroutine=11
     };
     OpCode parse(char16_t opp);
 };
