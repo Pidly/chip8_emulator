@@ -65,7 +65,8 @@ void Chip8::runInstruction(char16_t instruction) {
             *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
              */
             stackPointer += 1;
-            if (stackPointer > sizeof(stack)) {
+            int maxStackValues = sizeof(stack) / sizeof(stack[0]) - 1;
+            if (stackPointer > maxStackValues) {
                 std::stringstream ss;
                 ss << std::hex << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(instruction);
 

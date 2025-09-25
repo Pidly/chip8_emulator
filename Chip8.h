@@ -9,7 +9,6 @@
 class Chip8 {
     unsigned char registers[16];
     unsigned char memory[4096];
-    unsigned char frameBuffer[64*32];
     char16_t indexRegister;
     char16_t programCounter;
     char16_t stack[16];

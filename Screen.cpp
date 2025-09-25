@@ -48,7 +48,7 @@ void Screen::drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, co
 }
 
 void Screen::printScreen() {
-    for (int i = 0; i < sizeof(frameBuffer); i++) {
+    for (int i = 0; i < (FRAME_BUFFER_ELEMENTS); i++) {
         int x = (i % 64) * 10;
         int y = (i / 64) * 10;
         int width = 10;

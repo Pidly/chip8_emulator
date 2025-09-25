@@ -9,8 +9,8 @@
 class Screen {
     SDL_Window *sdlWindow;
     SDL_Renderer *renderer;
-
-    unsigned char frameBuffer[64*32];
+    static constexpr int FRAME_BUFFER_ELEMENTS = 64*32;
+    unsigned char frameBuffer[FRAME_BUFFER_ELEMENTS];
 public:
     Screen();
     ~Screen();
