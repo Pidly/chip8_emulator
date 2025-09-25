@@ -14,6 +14,7 @@ class Chip8 {
     char16_t indexRegister;
     char16_t programCounter;
     char16_t stack[16];
+    unsigned char stackPointer;
     void initFontData();
     std::ifstream &in;
     void readStream();
