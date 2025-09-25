@@ -106,9 +106,19 @@ void Chip8::runInstruction(char16_t instruction) {
             *Call subroutine at nnn.
             *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
              */
+            //todo probably want to do make sure stack pointer doesn't go over stack size.
             stackPointer += 1;
             stack[stackPointer] = programCounter;
             programCounter = instruction & 0x0FFF;
+            break;
+        }
+        case(OperationParser::ReturnFromSubroutine): {
+            // Return from a subroutine.
+            // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
+            //00EE return
+            programCounter = stack[stackPointer];
+            //todo probably want to make sure stack pointer doesn't go below 0
+            stackPointer -= 1;
             break;
         }
         default:

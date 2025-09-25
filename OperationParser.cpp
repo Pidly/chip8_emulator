@@ -12,7 +12,12 @@ OperationParser::OpCode OperationParser::parse(char16_t opp) {
     switch (opCodeCategory) {
         case(0x00):
             //OOE0 clear
+            // Return from a subroutine.
+            // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
             //00EE return
+            if ((opp & 0x000F) > 0) {
+                return ReturnFromSubroutine;
+            }
             return ClearScreen;
             break;
         case(0x01):
