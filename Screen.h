@@ -5,14 +5,12 @@
 #ifndef CHIP8_EMULATOR_SCREEN_H
 #define CHIP8_EMULATOR_SCREEN_H
 #include <SDL2/SDL.h>
-#include <iostream>
 
 class Screen {
-    //64x32 pixels. 8 pixels per character
     SDL_Window *sdlWindow;
     SDL_Renderer *renderer;
-
-    unsigned char frameBuffer[64*32]; //256
+    static constexpr int FRAME_BUFFER_ELEMENTS = 64*32;
+    unsigned char frameBuffer[FRAME_BUFFER_ELEMENTS];
 public:
     Screen();
     ~Screen();
