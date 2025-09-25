@@ -28,7 +28,6 @@ void Screen::clearScreen() {
 }
 
 void Screen::drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, const unsigned char (&memory)[4096]) {
-
     for (int i = 0; i < numOfBytes; i++) {
         const unsigned char sprite = memory[indexRegister + i];
 
@@ -49,12 +48,7 @@ void Screen::drawSprite(int x, int y, int numOfBytes, char16_t indexRegister, co
 }
 
 void Screen::printScreen() {
-    cout << "\n";
-
     for (int i = 0; i < sizeof(frameBuffer); i++) {
-        if (i % 64 == 0) {
-            cout << "\n";
-        }
         int x = (i % 64) * 10;
         int y = (i / 64) * 10;
         int width = 10;
@@ -62,15 +56,12 @@ void Screen::printScreen() {
 
         if (frameBuffer[i] > 0) {
             setSDLSpriteColor();
-            unsigned char fbValue = frameBuffer[i];
             SDL_Rect rect = {x, y, width, height};
             SDL_RenderFillRect(renderer, &rect);
-             cout << "1";
         } else {
             setSDLBackgroundColor();
             SDL_Rect rect = {x, y, width, height};
             SDL_RenderFillRect(renderer, &rect);
-            cout << "0";
         }
     }
     SDL_RenderPresent(renderer);

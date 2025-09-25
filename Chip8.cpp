@@ -1,8 +1,9 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include "OperationParser.h"
 #include "Chip8.h"
+#include <stdexcept>
+#include <sstream>
 
 using namespace std;
 
@@ -22,8 +23,6 @@ void Chip8::readStream() {
         if (in) {
             memory[512 + charNumbers] = ch;
             charNumbers++;
-            cout << "char: " << ch;
-            cout << " Hex: 0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(ch) << endl;
         } else {
             cout << "Rom size in bytes: " << charNumbers+1 << "\n";
         }
@@ -31,44 +30,55 @@ void Chip8::readStream() {
 }
 
 void Chip8::runInstruction(char16_t instruction) {
+    //Switch based on the top 4 bits of the instruction
+    switch ((instruction & 0xF000) >> 12) {
+        case(0x00): {
+            // 00EE return from subroutine
+            // The interpreter sets the program counter to the address at the top of the stack,
+            // then subtracts 1 from the stack pointer.
+            if ((instruction & 0x000F) > 0) {
+                programCounter = stack[stackPointer];
+                stackPointer -= 1;
+                if (stackPointer < 0) {
+                    std::stringstream ss;
+                    ss << std::hex << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(instruction);
 
-    switch (parser.parse(instruction)) {
-        case(OperationParser::ClearScreen): {
-            screen.clearScreen();
+                    std::string hexString = ss.str();
+                    throw std::out_of_range("Stack pointer size: " + std::to_string(stackPointer) +
+                        " smaller than 0 on instruction: " + hexString + " programCounter=" +
+                        std::to_string(programCounter));
+                }
+            } else {
+                // OOE0 clear
+                screen.clearScreen();
+            }
             break;
         }
-        case(OperationParser::LoadNormalRegister): {
-            const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
-            const auto value = static_cast<unsigned char>(instruction);
-            registers[registerNumber] = value;
-            break;
-        }
-        case(OperationParser::LoadIndexRegister): {
-            indexRegister = (instruction & 0x0FFF);
-            break;
-        }
-        case(OperationParser::DrawSprite): {
-            int xRegisterIndex = ((instruction >> 8) & 0x0F);
-            int yRegisterIndex = ((instruction >> 4) & 0x0F);
-            int numOfBytes = ((instruction) & 0x0F);
-
-            int xPos = registers[xRegisterIndex];
-            int yPos = registers[yRegisterIndex];
-
-            screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
-            break;
-        }
-        case(OperationParser::Jump): {
+        case(0x01): {
+            //1NNN jump NNN
             programCounter = (instruction & 0x0FFF);
             break;
         }
-        case(OperationParser::AddToNormalRegister): {
-            unsigned char xRegister = (instruction >> 8) & 0x0F;
-            unsigned char addValue = instruction & 0x0FF;
-            registers[xRegister] += addValue;
+        case(0x02): {
+            /*
+            *Call subroutine at nnn.
+            *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+             */
+            stackPointer += 1;
+            if (stackPointer > sizeof(stack)) {
+                std::stringstream ss;
+                ss << std::hex << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(instruction);
+
+                std::string hexString = ss.str();
+                throw std::out_of_range("Stack pointer size: " + std::to_string(stackPointer) +
+                    " larger than stack size on instruction: " + hexString + " programCounter=" +
+                    std::to_string(programCounter));
+            }
+            stack[stackPointer] = programCounter;
+            programCounter = instruction & 0x0FFF;
             break;
         }
-        case(OperationParser::CompareVxEqualSkip): {
+        case(0x03): {
             //3xNN Skip next instruction if Vx == NN
             unsigned char xRegister = (instruction >> 8) & 0x0F;
             unsigned char value = instruction & 0x0FF;
@@ -77,7 +87,8 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(OperationParser::CompareVxNotEqualSkip): {
+        case(0x04): {
+            //4XNN if vx != NN then skip the next operation (program counter + 2)
             unsigned char xRegister = (instruction >> 8) & 0x0F;
             unsigned char value = instruction & 0x0FF;
             if (registers[xRegister] != value) {
@@ -85,7 +96,8 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(OperationParser::VxVyEqualSkip): {
+        case(0x05): {
+            // 5xy0 - Skip next instruction if Vx = Vy. (program counter + 2)
             unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
             unsigned char yRegisterIndex = (instruction >> 4) & 0x0F;
             if (registers[xRegisterIndex] == registers[yRegisterIndex]) {
@@ -93,7 +105,22 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(OperationParser::VxVyNotEqualSkip): {
+        case(0x06): {
+            //6XNN load register Vx with value NN
+            const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
+            const auto value = static_cast<unsigned char>(instruction);
+            registers[registerNumber] = value;
+            break;
+        }
+        case(0x07): {
+            //7XNN Vx += NN
+            unsigned char xRegister = (instruction >> 8) & 0x0F;
+            unsigned char addValue = instruction & 0x0FF;
+            registers[xRegister] += addValue;
+            break;
+        }
+        case(0x09): {
+            // 9xy0 - Skip next instruction if Vx != Vy.
             unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
             unsigned char yRegisterIndex = (instruction >> 4) & 0x0F;
             if (registers[xRegisterIndex] != registers[yRegisterIndex]) {
@@ -101,24 +128,21 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(OperationParser::CallSubroutine): {
-            /*
-            *Call subroutine at nnn.
-            *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
-             */
-            //todo probably want to do make sure stack pointer doesn't go over stack size.
-            stackPointer += 1;
-            stack[stackPointer] = programCounter;
-            programCounter = instruction & 0x0FFF;
+        case(0x0A): {
+            //ANNN i := NNN
+            indexRegister = (instruction & 0x0FFF);
             break;
         }
-        case(OperationParser::ReturnFromSubroutine): {
-            // Return from a subroutine.
-            // The interpreter sets the program counter to the address at the top of the stack, then subtracts 1 from the stack pointer.
-            //00EE return
-            programCounter = stack[stackPointer];
-            //todo probably want to make sure stack pointer doesn't go below 0
-            stackPointer -= 1;
+        case(0x0D): {
+            //DXYN sprite vx vy N | vf == 1 on collision
+            int xRegisterIndex = ((instruction >> 8) & 0x0F);
+            int yRegisterIndex = ((instruction >> 4) & 0x0F);
+            int numOfBytes = ((instruction) & 0x0F);
+
+            int xPos = registers[xRegisterIndex];
+            int yPos = registers[yRegisterIndex];
+
+            screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
             break;
         }
         default:
@@ -135,7 +159,12 @@ void Chip8::readRomInstructions() {
         programCounter = programCounter + 2;
         char16_t instruction = (static_cast<char16_t>(topInstruction) << 8 | bottomInstruction);
 
-        runInstruction(instruction);
+        try {
+            runInstruction(instruction);
+        } catch (std::out_of_range &e) {
+            std::cerr << "Out of range exception: " << e.what() << endl;
+            return;
+        }
     } while (programCounter < sizeof(memory));
 }
 
