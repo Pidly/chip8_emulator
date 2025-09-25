@@ -5,7 +5,19 @@ class OperationParser {
     char16_t allTopFourBits;
 public:
     OperationParser();
-    enum OpCode {ClearScreen=0, LoadNormalRegister=1, LoadIndexRegister=2, DrawSprite=3, Jump=4, Skip=5, AddToNormalRegister=6, CompareVxEqualSkip=7, CompareVxNotEqualSkip=8, VxVyEqualSkip=9};
+    enum OpCode {
+        ClearScreen=0,
+        LoadNormalRegister=1,
+        LoadIndexRegister=2,
+        DrawSprite=3,
+        Jump=4,
+        Skip=5,
+        AddToNormalRegister=6,
+        CompareVxEqualSkip=7,
+        CompareVxNotEqualSkip=8,
+        VxVyEqualSkip=9,
+        VxVyNotEqualSkip=10
+    };
     OpCode parse(char16_t opp);
 };
 
