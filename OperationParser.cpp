@@ -40,6 +40,9 @@ OperationParser::OpCode OperationParser::parse(char16_t opp) {
             //7XNN vx += NN
             return AddToNormalRegister;
             break;
+        case(0x09):
+            // 9xy0 - Skip next instruction if Vx != Vy.
+            return VxVyNotEqualSkip;
         case(0x0A):
             //ANNN i := NNN
             return LoadIndexRegister;
