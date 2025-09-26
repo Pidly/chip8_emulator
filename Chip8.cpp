@@ -121,16 +121,99 @@ void Chip8::runInstruction(char16_t instruction) {
             break;
         }
         case(0x08): {
+            unsigned char xRegister = (instruction >> 8) & 0x0F;
+            unsigned char yRegister = (instruction >> 4) & 0x0F;
+
             switch (instruction & 0x000F) {
                 case(0): {
                     // 8xy0 - LD Vx, Vy; Stores the value of register Vy in register Vx.
-                    unsigned char xRegister = (instruction >> 8) & 0x0F;
-                    unsigned char yRegister = (instruction >> 4) & 0x0F;
                     registers[xRegister] = registers[yRegister];
                     break;
                 }
                 case(1): {
-                    
+                    // 8xy1 - OR Vx, Vy; Set Vx = Vx OR Vy. Performs a bitwise OR on the values of Vx and Vy.
+                    registers[xRegister] = registers[xRegister] | registers[yRegister];
+                    break;
+                }
+                case(2): {
+                    //8xy2 - AND Vx, Vy
+                    //Set Vx = Vx AND Vy.
+                    //Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx. A bitwise AND
+                    //compares the corrseponding bits from two values, and if both bits are 1, then the same bit in
+                    //the result is also 1. Otherwise, it is 0.
+                    registers[xRegister] = registers[xRegister] & registers[yRegister];
+                    break;
+                }
+                case(3): {
+                    //8xy3 - XOR Vx, Vy
+                    //Set Vx = Vx XOR Vy.
+                    //Performs a bitwise exclusive OR on the values of Vx and Vy, then stores the result in Vx.
+                    //An exclusive OR compares the corrseponding bits from two values, and if the bits are not both
+                    //the same, then the corresponding bit in the result is set to 1. Otherwise, it is 0.
+                    registers[xRegister] = registers[xRegister] ^ registers[yRegister];
+                    break;
+                }
+                case(4): {
+                    //8xy4 - ADD Vx, Vy
+                    //Set Vx = Vx + Vy, set VF = carry.
+                    //The values of Vx and Vy are added together. If the result is greater than 8 bits (i.e., > 255,)
+                    //VF is set to 1, otherwise 0. Only the lowest 8 bits of the result are kept, and stored in Vx.
+                    uint16_t result = registers[xRegister] + registers[yRegister];
+                    if (result > 255) {
+                        registers[VF_REGISTER] = 1;
+                        registers[xRegister] = (result & 0xFF);
+                    } else {
+                        registers[xRegister] = result;
+                        registers[VF_REGISTER] = 0;
+                    }
+                    break;
+                }
+                case(5): {
+                    //8xy5 - SUB Vx, Vy
+                    //Set Vx = Vx - Vy, set VF = NOT borrow.
+                    //If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
+                    if (registers[yRegister] > registers[xRegister]) {
+                        registers[VF_REGISTER] = 1;
+                    } else {
+                        registers[VF_REGISTER] = 0;
+                    }
+                    registers[xRegister] = registers[xRegister] - registers[yRegister];
+                    break;
+                }
+                case(6): {
+                    // 8xy6 - SHR Vx {, Vy}
+                    // Set Vx = Vx SHR 1.
+                    //If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+                    if ((registers[xRegister] & 0x01) > 0) {
+                        registers[VF_REGISTER] = 1;
+                    } else {
+                        registers[VF_REGISTER] = 0;
+                    }
+                    registers[xRegister] = registers[xRegister] >> 1;
+                    break;
+                }
+                case(7): {
+                    //8xy7 - SUBN Vx, Vy
+                    //Set Vx = Vy - Vx, set VF = NOT borrow.
+                    //If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+                    if (registers[yRegister] > registers[xRegister]) {
+                        registers[VF_REGISTER] = 1;
+                    } else {
+                        registers[VF_REGISTER] = 0;
+                    }
+                    registers[xRegister] = registers[yRegister] - registers[xRegister];
+                    break;
+                }
+                case(0xE): {
+                    //8xyE - SHL Vx {, Vy}
+                    //Set Vx = Vx SHL 1.
+                    //If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+                    if ((registers[xRegister] & 0x80) > 1) {
+                        registers[VF_REGISTER] = 1;
+                    } else {
+                        registers[VF_REGISTER] = 0;
+                    }
+                    registers[xRegister] = registers[xRegister] << 1;
                     break;
                 }
             }

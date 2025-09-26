@@ -7,6 +7,7 @@
 #include "Screen.h"
 
 class Chip8 {
+    static constexpr uint8_t VF_REGISTER = 15;
     unsigned char registers[16];
     unsigned char memory[4096];
     char16_t indexRegister;
