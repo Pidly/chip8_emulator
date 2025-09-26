@@ -120,6 +120,22 @@ void Chip8::runInstruction(char16_t instruction) {
             registers[xRegister] += addValue;
             break;
         }
+        case(0x08): {
+            switch (instruction & 0x000F) {
+                case(0): {
+                    // 8xy0 - LD Vx, Vy; Stores the value of register Vy in register Vx.
+                    unsigned char xRegister = (instruction >> 8) & 0x0F;
+                    unsigned char yRegister = (instruction >> 4) & 0x0F;
+                    registers[xRegister] = registers[yRegister];
+                    break;
+                }
+                case(1): {
+                    
+                    break;
+                }
+            }
+            break;
+        }
         case(0x09): {
             // 9xy0 - Skip next instruction if Vx != Vy.
             unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
