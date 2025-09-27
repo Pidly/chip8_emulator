@@ -172,12 +172,18 @@ void Chip8::runInstruction(char16_t instruction) {
                     //8xy5 - SUB Vx, Vy
                     //Set Vx = Vx - Vy, set VF = NOT borrow.
                     //If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
-                    if (registers[yRegister] > registers[xRegister]) {
-                        registers[VF_REGISTER] = 1;
+                    int result = registers[xRegister] - registers[yRegister];
+                    if (result < 0) {
+                        //ordering is important here because if vX(15) IS vF register(also 15) some un-expected behavior can happen.
+                        //although I'm not sure why a program would try to store the results in the vF register since it's used for the carry.
+
+                        //setting the register first CAUSES ERRORS on some tests because vF register carry gets overwritten the next line with the result.
+                        registers[xRegister] = result;
+                        registers[VF_REGISTER] = 0x00;
                     } else {
-                        registers[VF_REGISTER] = 0;
+                        registers[xRegister] = result;
+                        registers[VF_REGISTER] = 0x01;
                     }
-                    registers[xRegister] = registers[xRegister] - registers[yRegister];
                     break;
                 }
                 case(6): {
