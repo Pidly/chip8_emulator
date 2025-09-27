@@ -196,12 +196,12 @@ void Chip8::runInstruction(char16_t instruction) {
                     //8xy7 - SUBN Vx, Vy
                     //Set Vx = Vy - Vx, set VF = NOT borrow.
                     //If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+                    registers[xRegister] = registers[yRegister] - registers[xRegister];
                     if (registers[yRegister] > registers[xRegister]) {
                         registers[VF_REGISTER] = 1;
                     } else {
                         registers[VF_REGISTER] = 0;
                     }
-                    registers[xRegister] = registers[yRegister] - registers[xRegister];
                     break;
                 }
                 case(0xE): {
