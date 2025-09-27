@@ -245,6 +245,53 @@ void Chip8::runInstruction(char16_t instruction) {
             screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
             break;
         }
+        case(0x0F): {
+            uint8_t xRegisterIndex = (instruction >> 8) & 0x0F;
+            //Fx65, Fx55, Fx33, Fx1E
+            switch (instruction & 0xFF) {
+                case(0x1E): {
+                    //Fx1E - ADD I, Vx
+                    //Set I = I + Vx.
+                    //The values of I and Vx are added, and the results are stored in I.
+                    indexRegister = indexRegister + registers[xRegisterIndex];
+                    break;
+                }
+                case(0x33): {
+                    //Fx33 - LD B, Vx
+                    //Store BCD representation of Vx in memory locations I, I+1, and I+2.
+                    //The interpreter takes the decimal value of Vx, and places the hundreds digit in memory
+                    //at location in I, the tens digit at location I+1, and the ones digit at location I+2.
+                    unsigned char hundreds = registers[xRegisterIndex] / 100;
+                    unsigned char tens = (registers[xRegisterIndex] % 100) / 10;
+                    unsigned char ones = registers[xRegisterIndex] % 10;
+                    memory[indexRegister] = hundreds;
+                    memory[indexRegister + 1] = tens;
+                    memory[indexRegister + 2] = ones;
+                    break;
+                }
+                case(0x55): {
+                    //Fx55 - LD [I], Vx
+                    //Store registers V0 through Vx in memory starting at location I.
+                    //The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
+                    for (int i = 0; i <= xRegisterIndex; i++) {
+                        memory[indexRegister + i] = registers[i];
+                    }
+                    break;
+                }
+                case(0x65): {
+                    //Fx65 - LD Vx, [I]
+                    //Read registers V0 through Vx from memory starting at location I.
+                    //The interpreter reads values from memory starting at location I into registers V0 through Vx.
+                    for (int i = 0; i <= xRegisterIndex; i++) {
+                        registers[i] = memory[indexRegister + i];
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
         default:
             break;
     }
