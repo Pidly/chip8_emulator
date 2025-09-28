@@ -10,6 +10,7 @@ using namespace std;
 Chip8::Chip8(ifstream &in): in(in) {
     initFontData();
     stackPointer = 0;
+    delayTimer = 60;
     readStream();
     programCounter = 0x200;
 }
@@ -307,7 +308,8 @@ void Chip8::runInstruction(char16_t instruction) {
 
 
 
-void Chip8::readRomInstructions() {
+void Chip8::readRomInstructions(int numberOfInstructions) {
+    int numOfInsExecuted = 0;
     do {
         unsigned char topInstruction = memory[programCounter];
         unsigned char bottomInstruction = memory[programCounter + 1];
@@ -320,7 +322,32 @@ void Chip8::readRomInstructions() {
             std::cerr << "Out of range exception: " << e.what() << endl;
             return;
         }
-    } while (programCounter < sizeof(memory));
+        numOfInsExecuted++;
+    } while (numOfInsExecuted < numberOfInstructions);
+}
+
+void Chip8::runEmulator() {
+    const double fps = 60;
+    const std::chrono::nanoseconds frame_duration(static_cast<long long>(1.0 / fps * 1'000'000'000));
+    auto lastFrameTime = chrono::high_resolution_clock::now();
+
+    bool running = true;
+    int numOfInstructions = 10;
+
+    while (running) {
+        auto currentTime = chrono::high_resolution_clock::now();
+        auto elapsedTime = currentTime - lastFrameTime;
+
+        if (elapsedTime >= frame_duration) {
+            delayTimer--;
+            readRomInstructions(numOfInstructions);
+            lastFrameTime = currentTime;
+        }
+
+        if (delayTimer < 0) {
+            delayTimer = 60;
+        }
+    }
 }
 
 
