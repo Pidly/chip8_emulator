@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     cout << "Running instructions\n";
     chip8.runInstruction(0x00E0);
 
-    chip8.readRomInstructions();
+    chip8.runEmulator();
 
     in.close();
 

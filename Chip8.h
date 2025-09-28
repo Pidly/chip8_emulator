@@ -5,10 +5,12 @@
 #ifndef CHIP8_EMULATOR_CHIP8_H
 #define CHIP8_EMULATOR_CHIP8_H
 #include "Screen.h"
+#include <chrono>
 
 class Chip8 {
     static constexpr uint8_t VF_REGISTER = 15;
     unsigned char registers[16];
+    int8_t delayTimer;
     unsigned char memory[4096];
     char16_t indexRegister;
     char16_t programCounter;
@@ -20,8 +22,9 @@ class Chip8 {
     Screen screen;
 public:
     Chip8(std::ifstream &in);
-    void readRomInstructions();
+    void readRomInstructions(int numberOfInstructions);
     void runInstruction(char16_t instruction);
+    void runEmulator();
 };
 
 #endif //CHIP8_EMULATOR_CHIP8_H
