@@ -10,7 +10,7 @@
 class Chip8 {
     static constexpr uint8_t VF_REGISTER = 15;
     unsigned char registers[16];
-    int8_t delayTimer;
+    int delayTimer;
     unsigned char memory[4096];
     char16_t indexRegister;
     char16_t programCounter;

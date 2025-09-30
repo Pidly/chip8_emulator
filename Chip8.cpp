@@ -265,6 +265,13 @@ void Chip8::runInstruction(char16_t instruction) {
                     registers[xRegisterIndex] = delayTimer;
                     break;
                 }
+                case(0x15): {
+                    //Fx15 - LD DT, Vx
+                    //Set delay timer = Vx.
+                    //DT is set equal to the value of Vx.
+                    delayTimer = registers[xRegisterIndex];
+                    break;
+                }
                 case(0x1E): {
                     //Fx1E - ADD I, Vx
                     //Set I = I + Vx.
