@@ -260,6 +260,18 @@ void Chip8::runInstruction(char16_t instruction) {
             screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
             break;
         }
+        case(0x0E): {
+            unsigned char leastSignificantByte = instruction;
+            //Ex9E - SKP Vx
+            //Skip next instruction if key with the value of Vx is pressed.
+            //Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
+            if (leastSignificantByte == 0x9E) {
+                if (keypad[(instruction >> 8 & 0x0F)] > 0) {
+                    programCounter += 2;
+                }
+            }
+            break;
+        }
         case(0x0F): {
             uint8_t xRegisterIndex = (instruction >> 8) & 0x0F;
             //Fx65, Fx55, Fx33, Fx1E
