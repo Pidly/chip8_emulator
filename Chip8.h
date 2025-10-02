@@ -5,9 +5,13 @@
 #ifndef CHIP8_EMULATOR_CHIP8_H
 #define CHIP8_EMULATOR_CHIP8_H
 #include "Screen.h"
+#include <SDL2/SDL.h>
+#include <map>
 #include <chrono>
 
 class Chip8 {
+    uint8_t keypad[16];
+    std::map<SDL_Keycode, uint8_t> keyMap;
     static constexpr uint8_t VF_REGISTER = 15;
     unsigned char registers[16];
     int delayTimer;
@@ -19,6 +23,7 @@ class Chip8 {
     void initFontData();
     std::ifstream &in;
     void readStream();
+    void handleInput();
     Screen screen;
 public:
     Chip8(std::ifstream &in);
