@@ -38,14 +38,12 @@ void Chip8::readStream() {
 
 void Chip8::runInstruction(char16_t instruction) {
     //Switch based on the top 4 bits of the instruction
-    switch ((instruction & 0xF000) >> 12) {
-        case(0x00): {
+    switch ((instruction >> 12) & 0x0F) {
+        case(0x0): {
             // 00EE return from subroutine
             // The interpreter sets the program counter to the address at the top of the stack,
             // then subtracts 1 from the stack pointer.
-            if ((instruction & 0x000F) > 0) {
-                programCounter = stack[stackPointer];
-                stackPointer -= 1;
+            if ((instruction & 0x00FF) == 0xEE) {
                 if (stackPointer < 0) {
                     std::stringstream ss;
                     ss << std::hex << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(instruction);
@@ -55,18 +53,20 @@ void Chip8::runInstruction(char16_t instruction) {
                         " smaller than 0 on instruction: " + hexString + " programCounter=" +
                         std::to_string(programCounter));
                 }
-            } else {
+                programCounter = stack[stackPointer];
+                stackPointer -= 1;
+            } else if ((instruction & 0x00FF) == 0x00E0) {
                 // OOE0 clear
                 screen.clearScreen();
             }
             break;
         }
-        case(0x01): {
+        case(0x1): {
             //1NNN jump NNN
             programCounter = (instruction & 0x0FFF);
             break;
         }
-        case(0x02): {
+        case(0x2): {
             /*
             *Call subroutine at nnn.
             *The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
@@ -86,7 +86,7 @@ void Chip8::runInstruction(char16_t instruction) {
             programCounter = instruction & 0x0FFF;
             break;
         }
-        case(0x03): {
+        case(0x3): {
             //3xNN Skip next instruction if Vx == NN
             unsigned char xRegister = (instruction >> 8) & 0x0F;
             unsigned char value = instruction & 0x0FF;
@@ -95,7 +95,7 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(0x04): {
+        case(0x4): {
             //4XNN if vx != NN then skip the next operation (program counter + 2)
             unsigned char xRegister = (instruction >> 8) & 0x0F;
             unsigned char value = instruction & 0x0FF;
@@ -104,7 +104,7 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(0x05): {
+        case(0x5): {
             // 5xy0 - Skip next instruction if Vx = Vy. (program counter + 2)
             unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
             unsigned char yRegisterIndex = (instruction >> 4) & 0x0F;
@@ -113,21 +113,21 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(0x06): {
+        case(0x6): {
             //6XNN load register Vx with value NN
             const auto registerNumber = static_cast<unsigned char>((instruction >> 8) & 0x0F);
             const auto value = static_cast<unsigned char>(instruction);
             registers[registerNumber] = value;
             break;
         }
-        case(0x07): {
+        case(0x7): {
             //7XNN Vx += NN
             unsigned char xRegister = (instruction >> 8) & 0x0F;
-            unsigned char addValue = instruction & 0x0FF;
+            unsigned char addValue = instruction & 0x00FF;
             registers[xRegister] += addValue;
             break;
         }
-        case(0x08): {
+        case(0x8): {
             unsigned char xRegister = (instruction >> 8) & 0x0F;
             unsigned char yRegister = (instruction >> 4) & 0x0F;
 
@@ -234,7 +234,7 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(0x09): {
+        case(0x9): {
             // 9xy0 - Skip next instruction if Vx != Vy.
             unsigned char xRegisterIndex = (instruction >> 8) & 0x0F;
             unsigned char yRegisterIndex = (instruction >> 4) & 0x0F;
@@ -243,12 +243,12 @@ void Chip8::runInstruction(char16_t instruction) {
             }
             break;
         }
-        case(0x0A): {
+        case(0xA): {
             //ANNN i := NNN
             indexRegister = (instruction & 0x0FFF);
             break;
         }
-        case(0x0D): {
+        case(0xD): {
             //DXYN sprite vx vy N | vf == 1 on collision
             int xRegisterIndex = ((instruction >> 8) & 0x0F);
             int yRegisterIndex = ((instruction >> 4) & 0x0F);
@@ -260,13 +260,14 @@ void Chip8::runInstruction(char16_t instruction) {
             screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
             break;
         }
-        case(0x0E): {
+        case(0xE): {
             unsigned char leastSignificantByte = instruction;
+            uint8_t keyCode = registers[(instruction >> 8) & 0x0F];
             //Ex9E - SKP Vx
             //Skip next instruction if key with the value of Vx is pressed.
             //Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
             if (leastSignificantByte == 0x9E) {
-                if (keypad[(instruction >> 8 & 0x0F)] > 0) {
+                if (keypad[keyCode] > 0) {
                     programCounter += 2;
                 }
             }
@@ -274,13 +275,13 @@ void Chip8::runInstruction(char16_t instruction) {
             //Skip next instruction if key with the value of Vx is not pressed.
             //Checks the keyboard, and if the key corresponding to the value of Vx is currently in the up position, PC is increased by 2.
             if (leastSignificantByte == 0xA1) {
-                if (keypad[(instruction >> 8) & 0x0F] == 0) {
+                if (keypad[keyCode] == 0) {
                     programCounter += 2;
                 }
             }
             break;
         }
-        case(0x0F): {
+        case(0xF): {
             uint8_t xRegisterIndex = (instruction >> 8) & 0x0F;
             //Fx65, Fx55, Fx33, Fx1E
             switch (instruction & 0xFF) {
@@ -377,9 +378,9 @@ void Chip8::runEmulator() {
     while (running) {
         auto currentTime = chrono::high_resolution_clock::now();
         auto elapsedTime = currentTime - lastFrameTime;
-        handleInput();
 
         if (elapsedTime >= frame_duration) {
+            handleInput();
             delayTimer--;
             readRomInstructions(numOfInstructions);
             lastFrameTime = currentTime;
