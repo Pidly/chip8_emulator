@@ -13,7 +13,7 @@ Chip8::Chip8(ifstream &in): in(in) {
     delayTimer = 60;
     readStream();
     programCounter = 0x200;
-    std::map<SDL_Keycode, uint8_t> keyMap = {
+    keyMap = {
         {SDLK_1, 0x1}, {SDLK_2, 0x2}, {SDLK_3, 0x3}, {SDLK_4, 0xC},
         {SDLK_q, 0x4}, {SDLK_w, 0x5}, {SDLK_e, 0x6}, {SDLK_r, 0xD},
         {SDLK_a, 0x7}, {SDLK_s, 0x8}, {SDLK_d, 0x9}, {SDLK_f, 0xE},
@@ -267,6 +267,14 @@ void Chip8::runInstruction(char16_t instruction) {
             //Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
             if (leastSignificantByte == 0x9E) {
                 if (keypad[(instruction >> 8 & 0x0F)] > 0) {
+                    programCounter += 2;
+                }
+            }
+            //ExA1 - SKNP Vx
+            //Skip next instruction if key with the value of Vx is not pressed.
+            //Checks the keyboard, and if the key corresponding to the value of Vx is currently in the up position, PC is increased by 2.
+            if (leastSignificantByte == 0xA1) {
+                if (keypad[(instruction >> 8) & 0x0F] == 0) {
                     programCounter += 2;
                 }
             }
