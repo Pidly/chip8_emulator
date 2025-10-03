@@ -292,6 +292,22 @@ void Chip8::runInstruction(char16_t instruction) {
                     registers[xRegisterIndex] = delayTimer;
                     break;
                 }
+                case(0x0A): {
+                    //Fx0A - LD Vx, K
+                    //Wait for a key press, store the value of the key in Vx.
+                    //All execution stops until a key is pressed, then the value of that key is stored in Vx.
+                    int16_t keyPadIndex = -1;
+                    while (keyPadIndex < 0) {
+                        handleInput();
+                        for (int i = 0; i < NUMBER_OF_KEYPAD_BUTTONS; i++) {
+                            if (keypad[i] > 0) {
+                                keyPadIndex = i;
+                            }
+                        }
+                    }
+                    registers[xRegisterIndex] = keypad[keyPadIndex];
+                    break;
+                }
                 case(0x15): {
                     //Fx15 - LD DT, Vx
                     //Set delay timer = Vx.

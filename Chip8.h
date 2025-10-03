@@ -13,6 +13,7 @@ class Chip8 {
     uint8_t keypad[16];
     std::map<SDL_Keycode, uint8_t> keyMap;
     static constexpr uint8_t VF_REGISTER = 15;
+    static constexpr uint8_t NUMBER_OF_KEYPAD_BUTTONS = 16;
     unsigned char registers[16];
     int delayTimer;
     unsigned char memory[4096];
