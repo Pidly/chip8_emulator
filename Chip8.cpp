@@ -260,7 +260,12 @@ void Chip8::runInstruction(char16_t instruction) {
             int xPos = registers[xRegisterIndex];
             int yPos = registers[yRegisterIndex];
 
-            screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+            bool collision = screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+            if (collision) {
+                registers[VF_REGISTER] = 1;
+            } else {
+                registers[VF_REGISTER] = 0;
+            }
             break;
         }
         case(0xE): {
@@ -370,23 +375,15 @@ void Chip8::runInstruction(char16_t instruction) {
 
 
 
-void Chip8::readRomInstructions(int numberOfInstructions) {
-    int numOfInsExecuted = 0;
-    do {
-        unsigned char topInstruction = memory[programCounter];
-        unsigned char bottomInstruction = memory[programCounter + 1];
-        programCounter = programCounter + 2;
-        char16_t instruction = (static_cast<char16_t>(topInstruction) << 8 | bottomInstruction);
-
-        try {
-            runInstruction(instruction);
-        } catch (std::out_of_range &e) {
-            std::cerr << "Out of range exception: " << e.what() << endl;
-            return;
-        }
-        numOfInsExecuted++;
-    } while (numOfInsExecuted < numberOfInstructions);
+char16_t Chip8::readRomInstruction() {
+    unsigned char topInstruction = memory[programCounter];
+    unsigned char bottomInstruction = memory[programCounter + 1];
+    programCounter = programCounter + 2;
+    char16_t instruction = (static_cast<char16_t>(topInstruction) << 8 | bottomInstruction);
+    return instruction;
 }
+
+
 
 void Chip8::runEmulator() {
     const double fps = 60;
@@ -396,15 +393,47 @@ void Chip8::runEmulator() {
     bool running = true;
     int numOfInstructions = 10;
 
+    int instructionsExecuted = 0;
+    char16_t instruction = readRomInstruction();
+
     while (running) {
         auto currentTime = chrono::high_resolution_clock::now();
         auto elapsedTime = currentTime - lastFrameTime;
-
+        bool updateScreen = false;
         if (elapsedTime >= frame_duration) {
             handleInput();
             delayTimer--;
-            readRomInstructions(numOfInstructions);
+
+            while (instructionsExecuted < numOfInstructions) {
+                if ((instruction >> 12 & 0xF) == 0xD) {
+                    if (instructionsExecuted == 0) {
+                        runInstruction(instruction);
+                        updateScreen = true;
+                        instructionsExecuted++;
+                        instruction = readRomInstruction();
+                    } else {
+                        break;
+                    }
+                } else {
+                    runInstruction(instruction);
+                    instruction = readRomInstruction();
+                    instructionsExecuted++;
+                }
+            }
+            instructionsExecuted = 0;
+
+            //readRomInstructions(numOfInstructions);
+            /*
+             *vBlankQuirks 	DXYN
+             *Wait for vertical blank or screen interrupt before drawing (essentially consuming all remaining cycles
+             *for this frame, and only allowing one draw operation per frame)
+             *Blit directly to the screen immediately
+             */
             lastFrameTime = currentTime;
+            if (updateScreen) {
+                updateScreen = false;
+                screen.printScreen();
+            }
         }
 
         if (delayTimer < 0) {

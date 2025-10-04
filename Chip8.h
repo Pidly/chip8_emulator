@@ -28,7 +28,7 @@ class Chip8 {
     Screen screen;
 public:
     Chip8(std::ifstream &in);
-    void readRomInstructions(int numberOfInstructions);
+    char16_t readRomInstruction();
     void runInstruction(char16_t instruction);
     void runEmulator();
 };
