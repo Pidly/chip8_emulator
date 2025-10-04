@@ -260,7 +260,12 @@ void Chip8::runInstruction(char16_t instruction) {
             int xPos = registers[xRegisterIndex];
             int yPos = registers[yRegisterIndex];
 
-            screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+            bool collision = screen.drawSprite(xPos, yPos, numOfBytes, indexRegister, memory);
+            if (collision) {
+                registers[VF_REGISTER] = 1;
+            } else {
+                registers[VF_REGISTER] = 0;
+            }
             break;
         }
         case(0xE): {
@@ -405,6 +410,7 @@ void Chip8::runEmulator() {
             delayTimer--;
             readRomInstructions(numOfInstructions);
             lastFrameTime = currentTime;
+            screen.printScreen();
         }
 
         if (delayTimer < 0) {
