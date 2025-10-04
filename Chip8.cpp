@@ -343,7 +343,8 @@ void Chip8::runInstruction(char16_t instruction) {
                     //Store registers V0 through Vx in memory starting at location I.
                     //The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
                     for (int i = 0; i <= xRegisterIndex; i++) {
-                        memory[indexRegister + i] = registers[i];
+                        memory[indexRegister] = registers[i];
+                        indexRegister++;
                     }
                     break;
                 }
@@ -352,7 +353,8 @@ void Chip8::runInstruction(char16_t instruction) {
                     //Read registers V0 through Vx from memory starting at location I.
                     //The interpreter reads values from memory starting at location I into registers V0 through Vx.
                     for (int i = 0; i <= xRegisterIndex; i++) {
-                        registers[i] = memory[indexRegister + i];
+                        registers[i] = memory[indexRegister];
+                        indexRegister++;
                     }
                     break;
                 }
