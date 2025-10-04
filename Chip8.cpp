@@ -140,6 +140,7 @@ void Chip8::runInstruction(char16_t instruction) {
                 case(1): {
                     // 8xy1 - OR Vx, Vy; Set Vx = Vx OR Vy. Performs a bitwise OR on the values of Vx and Vy.
                     registers[xRegister] = registers[xRegister] | registers[yRegister];
+                    registers[VF_REGISTER] = 0;
                     break;
                 }
                 case(2): {
@@ -149,6 +150,7 @@ void Chip8::runInstruction(char16_t instruction) {
                     //compares the corrseponding bits from two values, and if both bits are 1, then the same bit in
                     //the result is also 1. Otherwise, it is 0.
                     registers[xRegister] = registers[xRegister] & registers[yRegister];
+                    registers[VF_REGISTER] = 0;
                     break;
                 }
                 case(3): {
@@ -158,6 +160,7 @@ void Chip8::runInstruction(char16_t instruction) {
                     //An exclusive OR compares the corrseponding bits from two values, and if the bits are not both
                     //the same, then the corresponding bit in the result is set to 1. Otherwise, it is 0.
                     registers[xRegister] = registers[xRegister] ^ registers[yRegister];
+                    registers[VF_REGISTER] = 0;
                     break;
                 }
                 case(4): {
