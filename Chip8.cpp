@@ -254,6 +254,9 @@ void Chip8::runInstruction(char16_t instruction) {
             break;
         }
         case(0xB): {
+            //Bnnn - JP V0, addr
+            //Jump to location nnn + V0.
+            //The program counter is set to nnn plus the value of V0.
             programCounter = (instruction & 0x0FFF);
             break;
         }
