@@ -253,6 +253,10 @@ void Chip8::runInstruction(char16_t instruction) {
             indexRegister = (instruction & 0x0FFF);
             break;
         }
+        case(0xB): {
+            programCounter = (instruction & 0x0FFF);
+            break;
+        }
         case(0xD): {
             //DXYN sprite vx vy N | vf == 1 on collision
             int xRegisterIndex = ((instruction >> 8) & 0x0F);
