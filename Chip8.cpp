@@ -200,6 +200,7 @@ void Chip8::runInstruction(char16_t instruction) {
                     // 8xy6 - SHR Vx {, Vy}
                     // Set Vx = Vx SHR 1.
                     //If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+                    registers[xRegister] = registers[yRegister];
                     if ((registers[xRegister] & 0x01) > 0) {
                         registers[xRegister] = registers[xRegister] >> 1;
                         registers[VF_REGISTER] = 1;
@@ -225,6 +226,7 @@ void Chip8::runInstruction(char16_t instruction) {
                     //8xyE - SHL Vx {, Vy}
                     //Set Vx = Vx SHL 1.
                     //If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+                    registers[xRegister] = registers[yRegister];
                     if ((registers[xRegister] & 0x80) > 1) {
                         registers[xRegister] = registers[xRegister] << 1;
                         registers[VF_REGISTER] = 1;
@@ -249,6 +251,13 @@ void Chip8::runInstruction(char16_t instruction) {
         case(0xA): {
             //ANNN i := NNN
             indexRegister = (instruction & 0x0FFF);
+            break;
+        }
+        case(0xB): {
+            //Bnnn - JP V0, addr
+            //Jump to location nnn + V0.
+            //The program counter is set to nnn plus the value of V0.
+            programCounter = (instruction & 0x0FFF);
             break;
         }
         case(0xD): {
