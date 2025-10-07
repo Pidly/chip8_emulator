@@ -11,6 +11,7 @@ Chip8::Chip8(ifstream &in): in(in) {
     initFontData();
     stackPointer = 0;
     delayTimer = 60;
+    soundTimer = 60;
     readStream();
     programCounter = 0x200;
     keyMap = {
@@ -332,6 +333,13 @@ void Chip8::runInstruction(char16_t instruction) {
                     delayTimer = registers[xRegisterIndex];
                     break;
                 }
+                case(0x18): {
+                    //Fx18 - LD ST, Vx
+                    //Set sound timer = Vx.
+                    //ST is set equal to the value of Vx.
+                    soundTimer = registers[xRegisterIndex];
+                    break;
+                }
                 case(0x1E): {
                     //Fx1E - ADD I, Vx
                     //Set I = I + Vx.
@@ -417,6 +425,7 @@ void Chip8::runEmulator() {
         if (elapsedTime >= frame_duration) {
             handleInput();
             delayTimer--;
+            soundTimer--;
             readRomInstructions(numOfInstructions);
             lastFrameTime = currentTime;
             screen.printScreen();
@@ -424,6 +433,9 @@ void Chip8::runEmulator() {
 
         if (delayTimer < 0) {
             delayTimer = 60;
+        }
+        if (soundTimer < 0) {
+            soundTimer = 0;
         }
     }
 }

@@ -16,6 +16,7 @@ class Chip8 {
     static constexpr uint8_t NUMBER_OF_KEYPAD_BUTTONS = 16;
     unsigned char registers[16];
     int delayTimer;
+    int soundTimer;
     unsigned char memory[4096];
     char16_t indexRegister;
     char16_t programCounter;
