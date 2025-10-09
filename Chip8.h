@@ -26,9 +26,13 @@ class Chip8 {
     std::ifstream &in;
     void readStream();
     void handleInput();
+    SDL_AudioStream *stream;
+    SDL_AudioSpec spec;
+    SDL_AudioDeviceID deviceId;
     Screen screen;
 public:
     Chip8(std::ifstream &in);
+    ~Chip8();
     void readRomInstructions(int numberOfInstructions);
     void runInstruction(char16_t instruction);
     void runEmulator();

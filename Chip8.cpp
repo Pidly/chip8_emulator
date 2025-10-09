@@ -7,6 +7,23 @@
 
 using namespace std;
 
+void audioCallback(void *userdata, uint8_t *stream, int len) {
+    int volume = 1000;
+    int audio_sample_rate = 44100;
+    int square_wave_freq = 440;
+
+    int16_t *audio_data = (int16_t *)stream;
+    static uint32_t running_sample_index = 0;
+
+    const int32_t square_wave_period = audio_sample_rate / square_wave_freq;
+    const int32_t half_square_wave_period = square_wave_period / 2;
+
+    for (int i = 0; i < len / 2; i++)
+        audio_data[i] = ((running_sample_index++ / half_square_wave_period) % 2) ?
+                        volume :
+                        -volume;
+}
+
 Chip8::Chip8(ifstream &in): in(in) {
     initFontData();
     stackPointer = 0;
@@ -20,6 +37,19 @@ Chip8::Chip8(ifstream &in): in(in) {
         {SDLK_a, 0x7}, {SDLK_s, 0x8}, {SDLK_d, 0x9}, {SDLK_f, 0xE},
         {SDLK_z, 0xA}, {SDLK_x, 0x0}, {SDLK_c, 0xB}, {SDLK_v, 0xF}
     };
+
+    spec = (SDL_AudioSpec){
+        .freq = 44100,
+        .format = AUDIO_S16LSB,
+        .channels = 1,
+        .samples = 512,
+        .callback = audioCallback
+    };
+    deviceId = SDL_OpenAudioDevice(NULL, 0, &spec, NULL, 0);
+}
+
+Chip8::~Chip8() {
+    SDL_FreeAudioStream(stream);
 }
 
 
@@ -434,8 +464,13 @@ void Chip8::runEmulator() {
         if (delayTimer < 0) {
             delayTimer = 60;
         }
-        if (soundTimer < 0) {
+        if (soundTimer > 0) {
+            //Audio on
+            SDL_PauseAudioDevice(deviceId, 0);
+        } else {
             soundTimer = 0;
+            //Audio off
+            SDL_PauseAudioDevice(deviceId, 1);
         }
     }
 }
