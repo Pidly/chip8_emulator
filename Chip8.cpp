@@ -48,11 +48,6 @@ Chip8::Chip8(ifstream &in): in(in) {
     deviceId = SDL_OpenAudioDevice(NULL, 0, &spec, NULL, 0);
 }
 
-Chip8::~Chip8() {
-    SDL_FreeAudioStream(stream);
-}
-
-
 void Chip8::readStream() {
     char ch;
     int charNumbers = 0;
@@ -445,10 +440,9 @@ void Chip8::runEmulator() {
     const std::chrono::nanoseconds frame_duration(static_cast<long long>(1.0 / fps * 1'000'000'000));
     auto lastFrameTime = chrono::high_resolution_clock::now();
 
-    bool running = true;
     int numOfInstructions = 10;
 
-    while (running) {
+    while (!exitProgram) {
         auto currentTime = chrono::high_resolution_clock::now();
         auto elapsedTime = currentTime - lastFrameTime;
 
@@ -480,7 +474,11 @@ void Chip8::handleInput() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_KEYDOWN) {
             auto it = keyMap.find(event.key.keysym.sym);
+            if (it->first == ESCAPE_KEYCODE) {
+                exitProgram = true;
+            }
             if (it != keyMap.end()) {
+                unsigned char key = it->second;
                 keypad[it->second] = 1; // Mark key as pressed
             }
         } else if (event.type == SDL_KEYUP) {

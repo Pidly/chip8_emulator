@@ -14,6 +14,8 @@ class Chip8 {
     std::map<SDL_Keycode, uint8_t> keyMap;
     static constexpr uint8_t VF_REGISTER = 15;
     static constexpr uint8_t NUMBER_OF_KEYPAD_BUTTONS = 16;
+    static constexpr unsigned char ESCAPE_KEYCODE = 16;
+    bool exitProgram = false;
     unsigned char registers[16];
     int delayTimer;
     int soundTimer;
@@ -32,7 +34,6 @@ class Chip8 {
     Screen screen;
 public:
     Chip8(std::ifstream &in);
-    ~Chip8();
     void readRomInstructions(int numberOfInstructions);
     void runInstruction(char16_t instruction);
     void runEmulator();
